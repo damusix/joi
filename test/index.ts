@@ -4,6 +4,14 @@ import { StandardSchemaV1 } from "@standard-schema/spec";
 
 const { expect } = Lab.types;
 
+type IsNull<T> = [T] extends [null] ? true : false;
+type IsAny<T> = 0 extends 1 & NoInfer<T> ? true : false;
+type IsUnknown<T> = unknown extends T // `T` can be `unknown` or `any`
+  ? IsNull<T> extends false // `any` can be `null`, but `unknown` can't be
+    ? true
+    : false
+  : false;
+
 // The following was copied (almost) as-is from:
 // https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/hapi__joi
 
@@ -2082,6 +2090,18 @@ type ExtractIsStripped<T extends Joi.AnySchema> = T['~flags']['isStripped'];
   });
   type FromEmptyType = Joi.InferType<typeof fromEmpty>;
   expect.type<{ name: string; age?: number }>({} as FromEmptyType);
+  const fromEmptyIsAny: IsAny<FromEmptyType> = false;
+  const fromEmptyIsUnknown: IsUnknown<FromEmptyType> = false;
+
+  // .keys() on lack of value builds up the shape
+  const fromNoValue = Joi.object().keys({
+    name: Joi.string().required(),
+    age: Joi.number(),
+  });
+  type FromNoValueType = Joi.InferType<typeof fromNoValue>;
+  expect.type<{ name: string; age?: number }>({} as FromNoValueType);
+  const noValueIsAny: IsAny<FromNoValueType> = false;
+  const noValueIsUnknown: IsUnknown<FromNoValueType> = false;
 
   // Nested objects work with .keys()
   const nested = Joi.object({
@@ -2098,6 +2118,8 @@ type ExtractIsStripped<T extends Joi.AnySchema> = T['~flags']['isStripped'];
     user: { name: string };
     meta?: { createdAt?: Date };
   }>({} as NestedKeysType);
+  const nestedIsAny: IsAny<NestedKeysType> = false;
+  const nestedIsUnknown: IsUnknown<NestedKeysType> = false;
 
   // validate() returns inferred type after .keys()
   const schema = Joi.object({
