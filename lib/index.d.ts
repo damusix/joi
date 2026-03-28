@@ -947,6 +947,8 @@ declare namespace Joi {
    */
   type InferOutput<T extends AnySchema> = InferType<T>;
 
+  type IsAnyType<T> = 0 extends 1 & T ? true : false;
+
   /**
    * Checks if a schema's isStripped flag is narrowed to true (via .forbidden() or .strip()).
    */
@@ -1995,6 +1997,9 @@ declare namespace Joi {
     append<TNew extends Record<string, any>>(
       schema: null extends TShape ? never : TNew
     ): ObjectSchema<InferObjectOutput<MergeShapes<Exclude<TShape, null>, TNew>>, TFlags, MergeShapes<Exclude<TShape, null>, TNew>>;
+    append<TNew extends Record<string, any>>(
+      schema: TShape extends null ? (IsAnyType<TSchema> extends true ? TNew : never) : never
+    ): ObjectSchema<InferObjectOutput<TNew>, TFlags, TNew>;
     append(schema?: SchemaMap<TSchema>): this;
     append<TSchemaExtended = any, T = TSchemaExtended>(
       schema?: SchemaMap<T>
@@ -2010,7 +2015,7 @@ declare namespace Joi {
      */
     concat<TOther, TOtherFlags extends SchemaFlags, TOtherShape extends Record<string, AnySchema> | null>(
       schema: ObjectSchema<TOther, TOtherFlags, TOtherShape>
-    ): ObjectSchema<Simplify<TSchema & TOther>, TFlags>;
+    ): ObjectSchema<IsAnyType<TSchema> extends true ? TOther : Simplify<TSchema & TOther>, TFlags>;
     concat(schema: this): this;
 
     /**
@@ -2028,6 +2033,9 @@ declare namespace Joi {
     keys<TNew extends Record<string, any>>(
       schema: null extends TShape ? never : TNew
     ): ObjectSchema<InferObjectOutput<MergeShapes<Exclude<TShape, null>, TNew>>, TFlags, MergeShapes<Exclude<TShape, null>, TNew>>;
+    keys<TNew extends Record<string, any>>(
+      schema: TShape extends null ? (IsAnyType<TSchema> extends true ? TNew : never) : never
+    ): ObjectSchema<InferObjectOutput<TNew>, TFlags, TNew>;
     keys(schema?: SchemaMap<TSchema>): this;
 
     /**

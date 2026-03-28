@@ -2215,6 +2215,28 @@ type ExtractIsStripped<T extends Joi.AnySchema> = T['~flags']['isStripped'];
   expect.error(Joi.object<{ name: string }>().keys({ height: Joi.number() }));
 }
 
+{
+  // .append() on untyped Joi.object() should infer shape from arguments
+  const appendNoValue = Joi.object().append({
+    name: Joi.string().required(),
+    age: Joi.number(),
+  });
+  type AppendNoValueType = Joi.InferType<typeof appendNoValue>;
+  expect.type<{ name: string; age?: number }>({} as AppendNoValueType);
+  const appendNoValueIsAny: IsAny<AppendNoValueType> = false;
+  const appendNoValueIsUnknown: IsUnknown<AppendNoValueType> = false;
+
+  // .concat() on untyped Joi.object() should infer shape from the other schema
+  const concatNoValue = Joi.object().concat(Joi.object({
+    name: Joi.string().required(),
+    age: Joi.number(),
+  }));
+  type ConcatNoValueType = Joi.InferType<typeof concatNoValue>;
+  expect.type<{ name: string; age?: number }>({} as ConcatNoValueType);
+  const concatNoValueIsAny: IsAny<ConcatNoValueType> = false;
+  const concatNoValueIsUnknown: IsUnknown<ConcatNoValueType> = false;
+}
+
 // --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- --- ---
 // Test .ordered() tuple inference on ArraySchema
 
